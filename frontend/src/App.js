@@ -27,8 +27,8 @@ const AnnotatedData = ({ annotatedData }) => {
         return (
           <p
             key={index}
-            className={`rounded-md hover:bg-cyan-200 break-words inline p-2 cursor-pointer select-none ${bgColor} ${
-              selected.includes(index) && "bg-cyan-300"
+            className={`rounded-md hover:bg-cyan-200 break-words inline p-2 cursor-pointer select-none ${
+              selected.includes(index) ? "bg-zinc-300" : bgColor
             }`}
             onClick={() => handleSelect(index)}
             title={data.factors.join(", ")}
@@ -53,28 +53,19 @@ function App() {
 
   const fetchAnnotations = async (sentences) => {
     setIsLoading(true);
-    // const res = await fetch("http://localhost:5000/api/endpoint");
-    // const data = await res.json();
-    const annotatedData = sentences.map((sentence) => {
-      return {
-        text_extract: sentence,
-        factors: ["12", "29"],
-      };
+    const res = await fetch("http://localhost:5000/api/annotate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ text_extracts: sentences }),
     });
+    const data = await res.json(); //annotatedDataMock; //
+    const annotatedData = data.annotations || [];
+    const uniqueFactors = data.unique_factors || [];
 
     setAnnotatedData(annotatedData);
-    setUniqueFactors([
-      { code_id: "12", code: "factor1" },
-      { code_id: "29", code: "factor2" },
-      { code_id: "30", code: "factor3" },
-      { code_id: "31", code: "factor4" },
-      { code_id: "32", code: "factor5" },
-      { code_id: "33", code: "factor6" },
-      { code_id: "34", code: "factor7" },
-      { code_id: "35", code: "factor8" },
-      { code_id: "36", code: "factor9" },
-      { code_id: "37", code: "factor10" },
-    ]);
+    setUniqueFactors(uniqueFactors);
     setIsLoading(false);
   };
 
