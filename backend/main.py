@@ -22,9 +22,11 @@ def annotate_text():
     for text_extract in text_extracts:
         annotation = model.get_parsed_annotations(text_extract)
         coded_factors = [{code_dictionary[factor]: factor} for factor in annotation['factors']]
-        
+        annotation['factors'] = []
+
         for item in coded_factors:
             code_id = list(item.keys())[0]
+            annotation['factors'].append(code_id)
             if code_id not in unique_factors:
                 unique_factors[code_id] = item
 
