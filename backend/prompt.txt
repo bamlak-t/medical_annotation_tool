@@ -1,0 +1,1 @@
+TAXONOMY: {taxonomy}\n\nAssume the role of a medical expert. Using the taxonomy containing human factors containing factors, your task is to find relevant text segments in the medical case. Afterwards, identify the most fitting factor labels for each relevant text segment using the taxonomy.\n\n{format_instructions}

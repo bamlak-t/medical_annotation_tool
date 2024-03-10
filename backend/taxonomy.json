@@ -1,0 +1,70 @@
+{
+  "taxonomy": [
+    { "code_id": 0, "code": "Accessibility" },
+    {
+      "code_id": 1,
+      "code": "Acuity (e.g., capacity of the maternity unit as a whole)"
+    },
+    {
+      "code_id": 2,
+      "code": "Assessment, investigation, testing, screening (e.g., holistic review)"
+    },
+    { "code_id": 3, "code": "Availability and/or use" },
+    { "code_id": 4, "code": "Care Planning" },
+    { "code_id": 5, "code": "Communication" },
+    { "code_id": 6, "code": "COVID" },
+    {
+      "code_id": 7,
+      "code": "Decision error (errors in conscious judgements, decisions due to lack of knowledge and from misunderstanding of a situation)"
+    },
+    { "code_id": 8, "code": "Dispensing, administering" },
+    { "code_id": 9, "code": "Documentation" },
+    {
+      "code_id": 10,
+      "code": "Environmental factor (Noise, Light, Temperature, Humidity)"
+    },
+    { "code_id": 11, "code": "Equipment failure" },
+    {
+      "code_id": 12,
+      "code": "Escalation/referral factor (including fresh eyes reviews)"
+    },
+    { "code_id": 13, "code": "Functionality (including cleaning and PPE)" },
+    { "code_id": 14, "code": "Geographical factor (e.g. Location of patient)" },
+    { "code_id": 15, "code": "Guidance" },
+    { "code_id": 16, "code": "Individual Workload, fatigue" },
+    { "code_id": 17, "code": "Interpretation (e.g., CTG)" },
+    { "code_id": 18, "code": "Language competence (English)" },
+    {
+      "code_id": 19,
+      "code": "Language interpretation (e.g., Lack of interpreter)"
+    },
+    { "code_id": 20, "code": "Monitoring" },
+    { "code_id": 21, "code": "Obstetric review" },
+    {
+      "code_id": 22,
+      "code": "Record of attendance (e.g., failure to attend antenatal classes)"
+    },
+    { "code_id": 23, "code": "Risk assessment" },
+    {
+      "code_id": 24,
+      "code": "Situation awareness (e.g., loss of helicopter view)"
+    },
+    {
+      "code_id": 25,
+      "code": "Slip or lapse (errors that tend to happen in routine tasks that people are doing without much conscious thought)"
+    },
+    {
+      "code_id": 26,
+      "code": "Supervision and management factor (e.g. style, oversight, lack of leadership)"
+    },
+    { "code_id": 27, "code": "Teamworking" },
+    {
+      "code_id": 28,
+      "code": "Time of day (e.g., night working or day of the week)"
+    },
+    {
+      "code_id": 29,
+      "code": "Training and education (e.g., attendance at ante-natal classes)"
+    }
+  ]
+}
