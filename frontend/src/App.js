@@ -51,7 +51,6 @@ function App() {
   const [selectedSentenceIds, setSelectedSentenceIds] = useState([]);
 
   const fetchAnnotationsData = async (sentences) => {
-    setIsLoading(true);
     const res = await fetch("http://localhost:5000/api/annotate", {
       method: "POST",
       headers: {
@@ -63,8 +62,6 @@ function App() {
       }),
     });
     const data = await res.json(); //annotatedDataMock; //
-
-    setIsLoading(false);
     return data;
   };
 
@@ -85,8 +82,6 @@ function App() {
       return;
     }
 
-    console.log("New Annotated Data:", newAnnotatedData);
-
     const updatedAnnotatedData = annotatedData.map((obj) => {
       const newData = newAnnotatedData.find((d) => d.id === obj.id);
       if (newData) {
@@ -97,7 +92,7 @@ function App() {
     const newUniqueFactors = data.unique_factors || [];
 
     setAnnotatedData(updatedAnnotatedData);
-    setUniqueFactors([...uniqueFactors, ...newUniqueFactors]);
+    setUniqueFactors([...uniqueFactors, ...newUniqueFactors]); // TODO: remove unused factors
   };
 
   const handleDocumentChange = (event) => {
@@ -106,7 +101,7 @@ function App() {
 
   const handleUpload = async () => {
     setSelectedSentenceIds([]);
-    console.log("Uploading file...");
+
     if (documentUpload) {
       console.log("Uploading file:", documentUpload.name);
 
@@ -123,12 +118,16 @@ function App() {
           .filter((sentence) => sentence.trim() !== "")
           .map((sentence) => sentence.trim());
         setSentences(sentences);
+
+        setIsLoading(true);
         const data = await fetchAnnotationsData(sentences);
+        setIsLoading(false);
+
         parseAnnotations(data);
       };
       fileReader.readAsArrayBuffer(documentUpload); // read as ArrayBuffer for pdf.js
     } else {
-      console.log("No file selected");
+      alert("No file selected");
     }
   };
 
@@ -159,6 +158,12 @@ function App() {
               disabled={isLoading}
             >
               Redo
+            </button>
+            <button
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              onClick={() => setSelectedSentenceIds([])}
+            >
+              Clear Selection
             </button>
           </div>
           <div className="flex flex-col gap-4 mt-5">
