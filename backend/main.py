@@ -18,13 +18,22 @@ def get_code(factor):
 def annotate_text():
     data = request.get_json()
     text_extracts = data.get('text_extracts', [])
+    text_extract_ids = set(data.get('text_extract_ids', []))
+
+    print(text_extracts)
+    print(text_extract_ids)
 
     annotations = []
     unique_factors = {}
 
-    for text_extract in text_extracts:
+    for index, text_extract in enumerate(text_extracts):
+        if text_extract_ids and index not in text_extract_ids:
+            continue
+
         annotation = model.get_parsed_annotations(text_extract)
-        coded_factors = [{code_dictionary.get(factor, "-1"): get_code(factor)} for factor in annotation['factors']]
+        annotation['id'] = index
+
+        coded_factors = [{code_dictionary.get(factor, -1): get_code(factor)} for factor in annotation['factors']]
 
         annotation['factors'] = []
 

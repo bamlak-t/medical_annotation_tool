@@ -5,18 +5,14 @@ import pdfjsWorker from "pdfjs-dist/build/pdf.worker.entry";
 
 GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
-const AnnotatedData = ({ annotatedData }) => {
-  const [selected, setSelected] = useState([]);
-
-  const handleSelect = (index) => {
-    if (selected.includes(index)) {
-      setSelected(selected.filter((i) => i !== index));
+const AnnotatedData = ({ annotatedData, selected, setSelected }) => {
+  const handleSelect = (id) => {
+    if (selected.includes(id)) {
+      setSelected(selected.filter((i) => i !== id));
       return;
     }
-    setSelected([...selected, index]);
+    setSelected([...selected, id]);
   };
-
-  console.log("Annotated Data:", annotatedData);
 
   const bgColors = ["bg-emerald-200", "bg-amber-200", "bg-rose-200"];
 
@@ -28,9 +24,9 @@ const AnnotatedData = ({ annotatedData }) => {
           <p
             key={index}
             className={`rounded-md hover:bg-cyan-200 break-words inline p-2 cursor-pointer select-none ${
-              selected.includes(index) ? "bg-zinc-300" : bgColor
+              selected.includes(data.id) ? "bg-zinc-300" : bgColor
             }`}
-            onClick={() => handleSelect(index)}
+            onClick={() => handleSelect(data.id)}
             title={data.factors.join(", ")}
           >
             <span className="bg-white rounded-md p-1">
@@ -50,23 +46,58 @@ function App() {
   const [annotatedData, setAnnotatedData] = useState([]);
   const [documentUpload, setDocumentUpload] = useState(null);
   const [uniqueFactors, setUniqueFactors] = useState([]);
+  const [sentences, setSentences] = useState([]);
 
-  const fetchAnnotations = async (sentences) => {
+  const [selectedSentenceIds, setSelectedSentenceIds] = useState([]);
+
+  const fetchAnnotationsData = async (sentences) => {
     setIsLoading(true);
     const res = await fetch("http://localhost:5000/api/annotate", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ text_extracts: sentences }),
+      body: JSON.stringify({
+        text_extracts: sentences,
+        text_extract_ids: selectedSentenceIds,
+      }),
     });
     const data = await res.json(); //annotatedDataMock; //
-    const annotatedData = data.annotations || [];
-    const uniqueFactors = data.unique_factors || [];
 
-    setAnnotatedData(annotatedData);
-    setUniqueFactors(uniqueFactors);
     setIsLoading(false);
+    return data;
+  };
+
+  const parseAnnotations = (data) => {
+    const newAnnotatedData = data.annotations || [];
+    const newUniqueFactors = data.unique_factors || [];
+
+    setAnnotatedData(newAnnotatedData);
+    setUniqueFactors(newUniqueFactors);
+  };
+
+  const updateAnnotations = async () => {
+    const data = await fetchAnnotationsData(sentences);
+
+    const newAnnotatedData = data.annotations || [];
+
+    if (newAnnotatedData.length === 0) {
+      return;
+    }
+
+    console.log("New Annotated Data:", newAnnotatedData);
+
+    const updatedAnnotatedData = annotatedData.map((obj) => {
+      const newData = newAnnotatedData.find((d) => d.id === obj.id);
+      if (newData) {
+        return newData;
+      }
+      return obj;
+    });
+    const newUniqueFactors = data.unique_factors || [];
+
+    setAnnotatedData(updatedAnnotatedData);
+    setUniqueFactors([...uniqueFactors, ...newUniqueFactors]);
   };
 
   const handleDocumentChange = (event) => {
@@ -74,6 +105,7 @@ function App() {
   };
 
   const handleUpload = async () => {
+    setSelectedSentenceIds([]);
     console.log("Uploading file...");
     if (documentUpload) {
       console.log("Uploading file:", documentUpload.name);
@@ -90,8 +122,9 @@ function App() {
           .split(/[.!?]/)
           .filter((sentence) => sentence.trim() !== "")
           .map((sentence) => sentence.trim());
-        console.log("Sentences:", sentences);
-        await fetchAnnotations(sentences);
+        setSentences(sentences);
+        const data = await fetchAnnotationsData(sentences);
+        parseAnnotations(data);
       };
       fileReader.readAsArrayBuffer(documentUpload); // read as ArrayBuffer for pdf.js
     } else {
@@ -110,7 +143,7 @@ function App() {
       <div className="flex flex-row w-full gap-10">
         <section className="justify-center items-center border border-gray-500 shadow-md p-5 min-w-80">
           <div className="flex flex-col gap-4">
-            <h1 className="text-center text-1xl font-bold">Upload</h1>
+            <h1 className="text-center text-1xl font-bold">Controls</h1>
 
             <input type="file" onChange={handleDocumentChange} />
             <button
@@ -119,6 +152,13 @@ function App() {
               disabled={isLoading}
             >
               Upload
+            </button>
+            <button
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              onClick={updateAnnotations}
+              disabled={isLoading}
+            >
+              Redo
             </button>
           </div>
           <div className="flex flex-col gap-4 mt-5">
@@ -144,7 +184,11 @@ function App() {
           {isLoading ? (
             <div className="text-center">Loading...</div>
           ) : (
-            <AnnotatedData annotatedData={annotatedData} />
+            <AnnotatedData
+              annotatedData={annotatedData}
+              selected={selectedSentenceIds}
+              setSelected={setSelectedSentenceIds}
+            />
           )}
         </section>
       </div>
