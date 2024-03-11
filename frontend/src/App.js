@@ -61,8 +61,7 @@ function App() {
         text_extract_ids: selectedSentenceIds,
       }),
     });
-    const data = await res.json(); //annotatedDataMock; //
-    return data;
+    return await res.json(); //annotatedDataMock; //
   };
 
   const parseAnnotations = (data) => {
@@ -77,22 +76,30 @@ function App() {
     const data = await fetchAnnotationsData(sentences);
 
     const newAnnotatedData = data.annotations || [];
+    let uniqueFactorIds = new Set([]);
 
     if (newAnnotatedData.length === 0) {
       return;
     }
 
     const updatedAnnotatedData = annotatedData.map((obj) => {
-      const newData = newAnnotatedData.find((d) => d.id === obj.id);
-      if (newData) {
-        return newData;
-      }
+      const newData = newAnnotatedData.find((d) => d.id === obj.id) || obj;
+      newData.factors.forEach((code_id) => {
+        uniqueFactorIds.add(code_id);
+      });
       return obj;
     });
+
     const newUniqueFactors = data.unique_factors || [];
+    const combined = [...uniqueFactors, ...newUniqueFactors];
+    const combinedIds = new Map(combined.map((item) => [item.code_id, item]));
+    const removed_duplicates = Array.from(combinedIds.values());
+    const updatedUniqueFactors = removed_duplicates.filter((obj) =>
+      uniqueFactorIds.has(obj.code_id)
+    );
 
     setAnnotatedData(updatedAnnotatedData);
-    setUniqueFactors([...uniqueFactors, ...newUniqueFactors]); // TODO: remove unused factors
+    setUniqueFactors(updatedUniqueFactors);
   };
 
   const handleDocumentChange = (event) => {
