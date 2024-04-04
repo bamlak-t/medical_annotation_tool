@@ -4,53 +4,79 @@ from langchain_community.embeddings import OllamaEmbeddings
 from langchain.prompts import FewShotPromptTemplate, PromptTemplate
 from langchain_community.llms import Ollama
 from langchain.output_parsers import StructuredOutputParser, ResponseSchema
-import pandas as pd
-import numpy as np
-import time
 import json
+import logging
+
+TAXONOMY_FILE = 'taxonomy.json'
+PROMPT_FILE = 'prompt.txt'
+EXAMPLES_FILE = 'examples.json'
+
 
 class Store:
+    """
+    Store class to load and store the taxonomy, prompt, and examples
+    """
+
     def __init__(self) -> None:
-        with open('taxonomy.json', 'r') as f:
-            self._taxonomy = f.read()
-            self._parsed_taxonomy = json.loads(self._taxonomy)
+        self._taxonomy = self._load_file(TAXONOMY_FILE)
+        self._parsed_taxonomy = json.loads(self._taxonomy)
 
-        with open('prompt.txt', 'r') as f:
-            self._prompt = f.read()
+        self._prompt = self._load_file(PROMPT_FILE)
 
-        with open('examples.json', 'r') as f:
-            examples = json.load(f)
-            self._examples = examples["examples"]
-        
-        # print(1, self._taxonomy, type(self._taxonomy))
-        # print(2, self._parsed_taxonomy, type(self._parsed_taxonomy))
-        # print(3, self._prompt, type(self._prompt))
-        # print(4, self._examples, type(self._examples))
-        
+        examples = self._load_file(EXAMPLES_FILE, json_file=True)
+        self._examples = examples['examples']
+
+    @staticmethod
+    def _load_file(file_name, json_file=False):
+        """
+        Load a file and return its contents. If json_file is True, parse the file as JSON.
+
+        Args:
+            file_name (str): name of the file to load
+            json_file (bool): flag to parse the file as JSON
+
+        Return:
+            str or dict: contents of the file
+        """
+        try:
+            with open(file_name, 'r') as f:
+                if json_file:
+                    return json.load(f)
+                else:
+                    return f.read()
+        except IOError:
+            print(f"Error opening or reading file: {file_name}")
+            return None
 
     def get_prompt(self):
         return self._prompt
 
     def get_parsed_taxonomy(self):
         return self._parsed_taxonomy
-    
+
     def get_taxonomy(self):
         return self._taxonomy
 
     def get_examples(self):
         return self._examples
 
+
 class MedNerModel:
+    """
+    MedNerModel class to annotate text extracts with factors from the taxonomy
+    """
+
     def __init__(self, model_name, embedding_model) -> None:
         self.llm = Ollama(model=model_name)
         self.embedding_model = embedding_model
         self.store = Store()
         self.setup_chain()
-    
-    def get_full_prompt(self, text_extract="TEXT_EXTRACT"):
-        return self.similar_prompt.format(text_extract=text_extract, taxonomy=self.store.get_taxonomy())
-    
+        logging.info(f'MedNerModel initialized with model: {model_name}')
+
     def setup_chain(self):
+        """
+        Setup the chain for the model
+        """
         self.output_parser = StructuredOutputParser.from_response_schemas([
             ResponseSchema(
                 name='text_extract',
@@ -63,18 +89,18 @@ class MedNerModel:
                 description='List of factors associated with the text extract'
             )
         ])
-        
+
         format_instructions = self.output_parser.get_format_instructions()
 
         example_prompt = PromptTemplate(
-            input_variables=["input", "output"],
-            template="Example Input: {input}\nExample Output: {output}",
+            input_variables=['input', 'output'],
+            template='Example Input: {input}\nExample Output: {output}',
         )
 
         # example_selector = SemanticSimilarityExampleSelector.from_examples(
-        #     self.store.get_examples(), 
-        #     OllamaEmbeddings(model=self.embedding_model), 
-        #     Chroma, 
+        #     self.store.get_examples(),
+        #     OllamaEmbeddings(model=self.embedding_model),
+        #     Chroma,
         #     k=2
         # )
 
@@ -83,36 +109,65 @@ class MedNerModel:
             examples=self.store.get_examples(),
             example_prompt=example_prompt,
             prefix=self.store.get_prompt(),
-            suffix="Input: {text_extract}\nOutput:",
-            input_variables=["text_extract"],
-            partial_variables={"format_instructions": format_instructions},
+            suffix='Input: {text_extract}\nOutput:',
+            input_variables=['text_extract'],
+            partial_variables={'format_instructions': format_instructions},
         )
 
-
     def get_annotations(self, text_extract):
+        """
+        Get the annotations for a given text extract
+
+        Args:
+            text_extract (str): text extract to be annotated
+
+        Return:
+            dict: dictionary containing annotations
+        """
         chain = self.similar_prompt | self.llm
-        return chain.invoke({"text_extract": text_extract, "taxonomy": self.store.get_taxonomy()})
+        return chain.invoke({'text_extract': text_extract, 'taxonomy': self.store.get_taxonomy()})
 
     def get_parsed_annotations(self, text_extract):
+        """
+        Get the parsed annotations for a given text extract
+
+        Args:
+            text_extract (str): text extract to be annotated
+
+        Return:
+            dict: dictionary containing parsed annotations
+        """
         try:
             annotated = self.get_annotations(text_extract)
             output = self.output_parser.parse(annotated)
             return output
         except Exception as e:
-            return {"text_extract": text_extract, "factors": ["Error parsing annotations"]}
+            return {'text_extract': text_extract, 'factors': ['Error parsing annotations']}
+
+    def get_full_prompt(self, text_extract='TEXT_EXTRACT'):
+        """
+        Construct the full prompt for the model
+
+        Args:
+            text_extract (str): text extract to be annotated
+
+        Return:
+            str: full prompt for the model
+        """
+        return self.similar_prompt.format(text_extract=text_extract, taxonomy=self.store.get_taxonomy())
 
 
-if __name__ == "__main__":
-    extract = "This means that IA was not performed in line with local or national guidance."
+if __name__ == '__main__':
+    extract = 'This means that IA was not performed in line with local or national guidance.'
 
-    model = MedNerModel("mistral", "mistral")
+    model = MedNerModel('mistral', 'mistral')
 
     full_prompt = model.get_full_prompt(extract)
-    print("full_prompt", full_prompt)
+    print('full_prompt', full_prompt)
 
     output = model.get_annotations(extract)
-    print("output", output)
+    print('output', output)
 
     parsed_output = model.get_parsed_annotations(output)
 
-    print("parsed_output", parsed_output)
+    print('parsed_output', parsed_output)
