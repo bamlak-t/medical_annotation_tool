@@ -2,7 +2,10 @@ from typing import List, Dict, Any
 from flask import Flask, jsonify
 from flask import request
 from flask_cors import CORS
+
 import inference
+import database
+
 import logging
 
 logging.basicConfig(filename='logs/annotation_app.log', filemode='w',
@@ -11,7 +14,6 @@ logging.basicConfig(filename='logs/annotation_app.log', filemode='w',
 
 app = Flask(__name__)
 CORS(app)
-
 
 class AnnotationApp:
     """	
@@ -29,6 +31,8 @@ class AnnotationApp:
             item['code']: item['code_id'] for item in self.parsed_taxonomy}
         self.id_to_code_dictionary = {
             item['code_id']: item['code'] for item in self.parsed_taxonomy}
+        
+        self.annotation_db = database.AnnotationDb()
 
     def annotate_text(self, text_extracts: List[str], text_extract_ids: List[int]) -> Dict[str, Any]:
         """
@@ -88,6 +92,7 @@ class AnnotationApp:
         """
         return self.id_to_code_dictionary[id] if id != -1 else 'Factor not found in the taxonomy'
 
+annotation_app = AnnotationApp()
 
 @app.route('/api/annotate', methods=['POST'])
 def annotate_route():
@@ -98,8 +103,7 @@ def annotate_route():
     text_extracts = data.get('text_extracts', [])
     text_extract_ids = set(data.get('text_extract_ids', []))
 
-    app = AnnotationApp()
-    result = app.annotate_text(text_extracts, text_extract_ids)
+    result = annotation_app.annotate_text(text_extracts, text_extract_ids)
 
     return jsonify(result)
 
