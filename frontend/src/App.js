@@ -73,6 +73,11 @@ function App() {
   };
 
   const updateAnnotations = async () => {
+    // update annotations based on selected sentences
+    if (selectedSentenceIds.length === 0) {
+      return;
+    }
+
     const data = await fetchAnnotationsData(sentences);
 
     const newAnnotatedData = data.annotations || [];
@@ -87,7 +92,7 @@ function App() {
       newData.factors.forEach((code_id) => {
         uniqueFactorIds.add(code_id);
       });
-      return obj;
+      return newData;
     });
 
     const newUniqueFactors = data.unique_factors || [];
