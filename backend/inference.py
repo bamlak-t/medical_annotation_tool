@@ -10,29 +10,29 @@ import logging
 TAXONOMY_FILE = 'taxonomy.json'
 PROMPT_FILE = 'prompt.txt'
 EXAMPLES_FILE = 'examples.json'
-
+MODEL_NAME = 'mistral'
+EMBEDDING_MODEL = 'mistral'
 
 class Store:
     """
     Store class to load and store the taxonomy, prompt, and examples
     """
 
-    def __init__(self) -> None:
-        self._taxonomy = self._load_file(TAXONOMY_FILE)
-        self._parsed_taxonomy = json.loads(self._taxonomy)
+    def __init__(self, taxonomy_file=TAXONOMY_FILE, prompt_file=PROMPT_FILE, examples_file=EXAMPLES_FILE) -> None:
+        self._taxonomy = self._load_file(taxonomy_file)
+        self._parsed_taxonomy = self._load_file(taxonomy_file, json_key='taxonomy' , json_file=True)
+        self._examples = self._load_file(examples_file, json_key='examples', json_file=True)
+        self._prompt = self._load_file(prompt_file)
 
-        self._prompt = self._load_file(PROMPT_FILE)
-
-        examples = self._load_file(EXAMPLES_FILE, json_file=True)
-        self._examples = examples['examples']
 
     @staticmethod
-    def _load_file(file_name, json_file=False):
+    def _load_file(file_name, json_key='', json_file=False):
         """
         Load a file and return its contents. If json_file is True, parse the file as JSON.
 
         Args:
             file_name (str): name of the file to load
+            json_key (str): key to extract from the JSON file
             json_file (bool): flag to parse the file as JSON
 
         Return:
@@ -41,11 +41,14 @@ class Store:
         try:
             with open(file_name, 'r') as f:
                 if json_file:
-                    return json.load(f)
+                    return json.load(f)[json_key]
                 else:
                     return f.read()
         except IOError:
-            print(f"Error opening or reading file: {file_name}")
+            print(f'Error opening or reading file: {file_name}')
+            return None
+        except KeyError:
+            print(f"Missing key '{json_key}' in file: {file_name}")
             return None
 
     def get_prompt(self):
@@ -66,7 +69,7 @@ class MedNerModel:
     MedNerModel class to annotate text extracts with factors from the taxonomy
     """
 
-    def __init__(self, model_name, embedding_model) -> None:
+    def __init__(self, model_name=MODEL_NAME, embedding_model=EMBEDDING_MODEL) -> None:
         self.llm = Ollama(model=model_name)
         self.embedding_model = embedding_model
         self.store = Store()
@@ -160,7 +163,7 @@ class MedNerModel:
 if __name__ == '__main__':
     extract = 'This means that IA was not performed in line with local or national guidance.'
 
-    model = MedNerModel('mistral', 'mistral')
+    model = MedNerModel()
 
     full_prompt = model.get_full_prompt(extract)
     print('full_prompt', full_prompt)

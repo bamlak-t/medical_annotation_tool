@@ -15,6 +15,12 @@ logging.basicConfig(filename='logs/annotation_app.log', filemode='w',
 app = Flask(__name__)
 CORS(app)
 
+# constants
+
+MODEL_NAME = 'biomistral'
+EMBEDDING_MODEL = 'biomistral'
+
+
 class AnnotationApp:
     """	
     An backend application for annotating text extracts with factors from the taxonomy
@@ -23,18 +29,18 @@ class AnnotationApp:
     def __init__(self):
         self.store = inference.Store()
         self.model = inference.MedNerModel(
-            model_name='biomistral', embedding_model='biomistral')
+        model_name=MODEL_NAME, embedding_model=EMBEDDING_MODEL)
 
-        self.parsed_taxonomy = self.store.get_parsed_taxonomy()['taxonomy']
+        parsed_taxonomy = self.store.get_parsed_taxonomy()
 
         self.code_to_id_dictionary = {
-            item['code']: item['code_id'] for item in self.parsed_taxonomy}
+            item['code']: item['code_id'] for item in parsed_taxonomy}
         self.id_to_code_dictionary = {
-            item['code_id']: item['code'] for item in self.parsed_taxonomy}
-        
+            item['code_id']: item['code'] for item in parsed_taxonomy}
+
         self.annotation_db = database.AnnotationDb()
 
-    def annotate_text(self, text_extracts: List[str], text_extract_ids: List[int]) -> Dict[str, Any]:
+    def annotate_text(self, text_extracts: List[str], text_extract_ids: List[int], save_response: bool) -> Dict[str, Any]:
         """
         Annotate text extracts with factors from the taxonomy
 
@@ -78,6 +84,20 @@ class AnnotationApp:
                                  for item in sorted(unique_factors.keys(), key=int)]
 
         logging.info('Finished annotation of text extracts')
+
+        if save_response:
+            to_save = []
+            for item in annotations_list:
+                extract = item['text_extract']
+                coded_factors = item['factors']
+
+                labels = ", ".join([self.get_code_by_id(factor_code)
+                          for factor_code in coded_factors])
+
+                to_save.append((extract, labels))
+
+            self.annotation_db.insert_bulk_row(to_save)
+
         return {'annotations': annotations_list, 'unique_factors': unique_factors_sorted}
 
     def get_code_by_id(self, id: str) -> str:
@@ -92,7 +112,6 @@ class AnnotationApp:
         """
         return self.id_to_code_dictionary[id] if id != -1 else 'Factor not found in the taxonomy'
 
-annotation_app = AnnotationApp()
 
 @app.route('/api/annotate', methods=['POST'])
 def annotate_route():
@@ -103,7 +122,10 @@ def annotate_route():
     text_extracts = data.get('text_extracts', [])
     text_extract_ids = set(data.get('text_extract_ids', []))
 
-    result = annotation_app.annotate_text(text_extracts, text_extract_ids)
+    annotation_app = AnnotationApp()
+
+    result = annotation_app.annotate_text(
+        text_extracts, text_extract_ids, save_response=True)
 
     return jsonify(result)
 

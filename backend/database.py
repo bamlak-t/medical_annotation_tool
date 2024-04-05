@@ -11,13 +11,22 @@ class AnnotationDb:
     def create_table(self):
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS annotations (
-                id INTEGER PRIMARY KEY,
-                data TEXT
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                extract TEXT,
+                labels TEXT
             )
         """)
+        self.conn.commit()
 
-    def insert_data(self, data):
+    def insert_row(self, extract, labels):
         self.cursor.execute("""
-            INSERT INTO annotations (data) VALUES (?)
-        """, (data,))
+            INSERT INTO annotations (extract, labels) VALUES (?, ?)
+        """, (extract, labels,))
+        self.conn.commit()
+
+    def insert_bulk_row(self, data):
+        print(data)
+        self.cursor.executemany("""
+            INSERT INTO annotations (extract, labels) VALUES (?, ?)
+        """, data)
         self.conn.commit()
