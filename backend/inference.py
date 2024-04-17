@@ -71,7 +71,7 @@ class MedNerModel:
 
     def __init__(self, model_name=MODEL_NAME, embedding_model=EMBEDDING_MODEL) -> None:
         self.llm = Ollama(model=model_name)
-        self.embedding_model = embedding_model
+        self.embedding_model = embedding_model # OllamaEmbeddings(model=embedding_model)
         self.store = Store()
         self.setup_chain()
         logging.info(f'MedNerModel initialized with model: {model_name}')

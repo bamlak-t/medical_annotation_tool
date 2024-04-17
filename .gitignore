@@ -1,4 +1,5 @@
 notebooks/*
+models/*
 frontend/src/mock/*
 backend/logs/*
 backend/annotations.db
