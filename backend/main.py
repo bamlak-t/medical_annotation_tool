@@ -14,9 +14,10 @@ import logging
 logging.basicConfig(filename='logs/annotation_app.log', filemode='w',
                     format='%(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
-
 app = Flask(__name__)
 CORS(app)
+
+AUTO_TRAINER_PATH = 'auto_trainer'
 
 # enum for model selection
 class ModelType(Enum):
@@ -29,14 +30,15 @@ class AnnotationApp:
     """
 
     def __init__(self):
-        store = store.Store()
+        store_manager = store.Store()
 
         manager = inference.Manager()
+        self.manager = manager
         self.ollama_model = ollama_model.OllamaAnnotationModel(
-            store=store, output_parser=manager.output_parser, few_shot_template=manager.few_shot_template)
+            store=store_manager, output_parser=manager.output_parser, few_shot_template=manager.few_shot_template)
 
         self.torch_model = torch_model.TorchAnnotationModel(
-            store=store, output_parser=manager.output_parser, few_shot_template=manager.few_shot_template)
+            store=store_manager, output_parser=manager.output_parser, few_shot_template=manager.few_shot_template)
                 
         parsed_taxonomy = store.get_parsed_taxonomy()
 
@@ -110,6 +112,12 @@ class AnnotationApp:
                 to_save.append((extract, labels))
 
             self.annotation_db.insert_bulk_row(to_save)
+
+        if redo:
+            with open(AUTO_TRAINER_PATH + '/train.csv', 'a') as file:
+                for item in annotations_list:
+                    data_point = f'{self.manager.get_full_prompt()},{item["text_extract"]},,\n'
+                    file.write(data_point)
 
         return {'annotations': annotations_list, 'unique_factors': unique_factors_sorted}
 

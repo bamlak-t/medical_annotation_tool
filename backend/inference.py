@@ -31,7 +31,6 @@ class Manager:
         )
 
         self.few_shot_template = FewShotPromptTemplate(
-            # example_selector=example_selector,
             examples=self.store.get_examples(),
             example_prompt=example_prompt,
             prefix=self.store.get_prompt(),
