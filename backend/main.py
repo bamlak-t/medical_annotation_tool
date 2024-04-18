@@ -3,9 +3,12 @@ from flask import Flask, jsonify
 from flask import request
 from flask_cors import CORS
 
-import inference
+import models.OllamaModel as ollama_model
+import models.TorchModel as torch_model
+import store
 import database
-
+import inference
+from enum import Enum
 import logging
 
 logging.basicConfig(filename='logs/annotation_app.log', filemode='w',
@@ -15,11 +18,10 @@ logging.basicConfig(filename='logs/annotation_app.log', filemode='w',
 app = Flask(__name__)
 CORS(app)
 
-# constants
-
-MODEL_NAME = 'biomistral'
-EMBEDDING_MODEL = 'biomistral'
-
+# enum for model selection
+class ModelType(Enum):
+    OLLAMA = 'OLLAMA_MODEL'
+    TORCH = 'TORCH_MODEL'
 
 class AnnotationApp:
     """	
@@ -27,11 +29,16 @@ class AnnotationApp:
     """
 
     def __init__(self):
-        self.store = inference.Store()
-        self.model = inference.MedNerModel(
-        model_name=MODEL_NAME, embedding_model=EMBEDDING_MODEL)
+        store = store.Store()
 
-        parsed_taxonomy = self.store.get_parsed_taxonomy()
+        manager = inference.Manager()
+        self.ollama_model = ollama_model.OllamaAnnotationModel(
+            store=store, output_parser=manager.output_parser, few_shot_template=manager.few_shot_template)
+
+        self.torch_model = torch_model.TorchAnnotationModel(
+            store=store, output_parser=manager.output_parser, few_shot_template=manager.few_shot_template)
+                
+        parsed_taxonomy = store.get_parsed_taxonomy()
 
         self.code_to_id_dictionary = {
             item['code']: item['code_id'] for item in parsed_taxonomy}
@@ -40,13 +47,16 @@ class AnnotationApp:
 
         self.annotation_db = database.AnnotationDb()
 
-    def annotate_text(self, text_extracts: List[str], text_extract_ids: List[int], save_response: bool) -> Dict[str, Any]:
+    def annotate_text(self, text_extracts: List[str], text_extract_ids: List[int], save_response: bool, redo: bool, model_type: str) -> Dict[str, Any]:
         """
         Annotate text extracts with factors from the taxonomy
 
         Args: 
             text_extracts (list): list of text extracts to be annotated
             text_extract_ids (list): list of indices of text extracts to be annotated (empty list implies all text extracts)
+            save_response (bool): flag to save the response in the database
+            redo (bool): flag to redo the annotation
+            model_type (str): type of model to be used for annotation
 
         Return: 
             dict: dictionary containing annotations and unique factors
@@ -56,6 +66,9 @@ class AnnotationApp:
         annotations_list = []
         unique_factors = {}
 
+        # select model based on model_type
+        model = self.ollama_model if model_type == ModelType.OLLAMA.value else self.torch_model
+
         for index, text_extract in enumerate(text_extracts):
             # skip text extracts for selective annotation
             if text_extract_ids and index not in text_extract_ids:
@@ -63,7 +76,7 @@ class AnnotationApp:
 
             # invoke model and parse output into JSON
             logging.info(f'Annotating text extract at index {index}')
-            parsed_annotations = self.model.get_parsed_annotations(text_extract)[
+            parsed_annotations = model.get_parsed_annotations(text_extract)[
                 'factors']
 
             # convert factors into respective codes
@@ -92,7 +105,7 @@ class AnnotationApp:
                 coded_factors = item['factors']
 
                 labels = ", ".join([self.get_code_by_id(factor_code)
-                          for factor_code in coded_factors])
+                                    for factor_code in coded_factors])
 
                 to_save.append((extract, labels))
 
@@ -121,11 +134,12 @@ def annotate_route():
 
     text_extracts = data.get('text_extracts', [])
     text_extract_ids = set(data.get('text_extract_ids', []))
+    model_type = data.get('model_type', ModelType.OLLAMA.value)
 
     annotation_app = AnnotationApp()
 
     result = annotation_app.annotate_text(
-        text_extracts, text_extract_ids, save_response=True)
+        text_extracts, text_extract_ids, save_response=True, redo=len(text_extract_ids) > 0, model_type=ModelType(model_type))
 
     return jsonify(result)
 

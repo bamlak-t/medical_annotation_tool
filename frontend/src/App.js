@@ -48,6 +48,11 @@ function App() {
   const [uniqueFactors, setUniqueFactors] = useState([]);
   const [sentences, setSentences] = useState([]);
 
+  const OLLAMA_MODEL = "OLLAMA_MODEL";
+  const TORCH_MODEL = "TORCH_MODEL";
+
+  const [selectedModel, setSelectedModel] = useState(OLLAMA_MODEL);
+
   const [selectedSentenceIds, setSelectedSentenceIds] = useState([]);
 
   const fetchAnnotationsData = async (sentences) => {
@@ -59,6 +64,7 @@ function App() {
       body: JSON.stringify({
         text_extracts: sentences,
         text_extract_ids: selectedSentenceIds,
+        model_type: selectedModel,
       }),
     });
     return await res.json(); //annotatedDataMock; //
@@ -151,6 +157,17 @@ function App() {
         </h1>
       </div>
 
+      <div>
+        <h1 className="text-center text-1xl font-bold">Model Type</h1>
+        <select
+          className="border border-gray-300 rounded-md p-2"
+          value={selectedModel}
+          onChange={(e) => setSelectedModel(e.target.value)}
+        >
+          <option value={OLLAMA_MODEL}>Base</option>
+          <option value={TORCH_MODEL}>Fine-tuned</option>
+        </select>
+      </div>
       <div className="flex flex-row w-full gap-10">
         <section className="justify-center items-center border border-gray-500 shadow-md p-5 min-w-80">
           <div className="flex flex-col gap-4">
