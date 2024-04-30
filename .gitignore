@@ -4,6 +4,7 @@ notebooks/*
 !notebooks/taxonomy.json
 !notebooks/sirch_csv_1.txt
 !notebooks/sirch_json_6.txt
+!notebooks/requirements.txt
 
 models/*
 frontend/src/mock/*
