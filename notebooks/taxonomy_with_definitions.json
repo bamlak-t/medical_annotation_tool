@@ -1,0 +1,154 @@
+{
+  "taxonomy": [
+    {
+      "code_id": 0,
+      "code": "Accessibility",
+      "definition": "The ease with which services can be reached or accessed in the maternity unit."
+    },
+    {
+      "code_id": 1,
+      "code": "Acuity (e.g., capacity of the maternity unit as a whole)",
+      "definition": "The level of severity of patients' conditions in the maternity unit and the unit's capacity to handle them."
+    },
+    {
+      "code_id": 2,
+      "code": "Assessment, investigation, testing, screening (e.g., holistic review)",
+      "definition": "The process of evaluating the health status of the mother and baby, including tests and screenings."
+    },
+    {
+      "code_id": 3,
+      "code": "Availability and/or use",
+      "definition": "The extent to which necessary resources, such as staff, equipment, or medicines, are available and used effectively in the maternity unit."
+    },
+    {
+      "code_id": 4,
+      "code": "Care Planning",
+      "definition": "The process of developing a tailored plan for the care of a mother and baby during pregnancy, labor, and postpartum period."
+    },
+    {
+      "code_id": 5,
+      "code": "Communication",
+      "definition": "The exchange of information between healthcare professionals, and between healthcare professionals and patients, in the maternity unit."
+    },
+    {
+      "code_id": 6,
+      "code": "COVID",
+      "definition": "Issues related to the COVID-19 pandemic, such as infection control measures, impact on staffing and services, or changes to care provision."
+    },
+    {
+      "code_id": 7,
+      "code": "Decision error (errors in conscious judgements, decisions due to lack of knowledge and from misunderstanding of a situation)",
+      "definition": "Mistakes made in the process of making decisions, often due to lack of knowledge or misunderstanding of a situation."
+    },
+    {
+      "code_id": 8,
+      "code": "Dispensing, administering",
+      "definition": "The process of giving out and administering medications or treatments in the maternity unit."
+    },
+    {
+      "code_id": 9,
+      "code": "Documentation",
+      "definition": "The recording of clinical information, decisions, and actions in patient records."
+    },
+    {
+      "code_id": 10,
+      "code": "Environmental factor (Noise, Light, Temperature, Humidity)",
+      "definition": "Aspects of the physical environment in the maternity unit that may impact care, such as noise, lighting, temperature, and humidity."
+    },
+    {
+      "code_id": 11,
+      "code": "Equipment failure",
+      "definition": "Situations where equipment used in the maternity unit does not function as intended."
+    },
+    {
+      "code_id": 12,
+      "code": "Escalation/referral factor (including fresh eyes reviews)",
+      "definition": "The process of increasing the level of care or referring the patient to a specialist, including situations where a 'fresh eyes' review is conducted."
+    },
+    {
+      "code_id": 13,
+      "code": "Functionality (including cleaning and PPE)",
+      "definition": "The operational effectiveness of processes and equipment in the maternity unit, including cleaning procedures and the use of personal protective equipment (PPE)."
+    },
+    {
+      "code_id": 14,
+      "code": "Geographical factor (e.g. Location of patient)",
+      "definition": "The impact of the patient's location, such as distance to the hospital or location within the hospital, on the care provided."
+    },
+    {
+      "code_id": 15,
+      "code": "Guidance",
+      "definition": "The availability and application of guidelines or protocols in the maternity unit."
+    },
+    {
+      "code_id": 16,
+      "code": "Individual Workload, fatigue",
+      "definition": "The impact of the workload on individual healthcare professionals, and the potential for fatigue to affect their performance."
+    },
+    {
+      "code_id": 17,
+      "code": "Interpretation (e.g., CTG)",
+      "definition": "The process of understanding and making sense of information, such as the interpretation of Cardiotocography (CTG) traces."
+    },
+    {
+      "code_id": 18,
+      "code": "Language competence (English)",
+      "definition": "The ability of healthcare professionals and patients to understand and communicate effectively in English."
+    },
+    {
+      "code_id": 19,
+      "code": "Language interpretation (e.g., Lack of interpreter)",
+      "definition": "The availability and use of interpretation services when the patient does not speak English fluently."
+    },
+    {
+      "code_id": 20,
+      "code": "Monitoring",
+      "definition": "The ongoing observation and recording of the mother's or baby's condition."
+    },
+    {
+      "code_id": 21,
+      "code": "Obstetric review",
+      "definition": "A review of the mother's obstetric history and current pregnancy by a healthcare professional."
+    },
+    {
+      "code_id": 22,
+      "code": "Record of attendance (e.g., failure to attend antenatal classes)",
+      "definition": "The tracking of the patient's attendance at appointments or classes, such as antenatal classes."
+    },
+    {
+      "code_id": 23,
+      "code": "Risk assessment",
+      "definition": "The process of identifying and evaluating potential risks to the mother or baby."
+    },
+    {
+      "code_id": 24,
+      "code": "Situation awareness (e.g., loss of helicopter view)",
+      "definition": "The understanding of the current situation and the ability to anticipate future events, often referred to as maintaining a 'helicopter view'."
+    },
+    {
+      "code_id": 25,
+      "code": "Slip or lapse (errors that tend to happen in routine tasks that people are doing without much conscious thought)",
+      "definition": "Errors that occur during routine tasks, often due to lack of attention or memory lapses."
+    },
+    {
+      "code_id": 26,
+      "code": "Supervision and management factor (e.g. style, oversight, lack of leadership)",
+      "definition": "The impact of supervision and management styles, including the level of oversight and leadership, on the functioning of the maternity unit."
+    },
+    {
+      "code_id": 27,
+      "code": "Teamworking",
+      "definition": "This refers to the collaborative efforts of healthcare professionals in providing care during maternity. It involves effective communication and cooperation among the team members."
+    },
+    {
+      "code_id": 28,
+      "code": "Time of day (e.g., night working or day of the week)",
+      "definition": "This refers to the specific time when maternity care is provided. It could be during the day or night, and on any day of the week. The quality of care should be consistent regardless of the time."
+    },
+    {
+      "code_id": 29,
+      "code": "Training and education (e.g., attendance at ante-natal classes)",
+      "definition": "This refers to the educational programs and training sessions provided to expectant mothers. These classes help them prepare for childbirth and parenthood, and include information on nutrition, exercise, labor, delivery, and newborn care."
+    }
+  ]
+}

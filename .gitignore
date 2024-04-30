@@ -1,4 +1,10 @@
 notebooks/*
+!notebooks/main_notebook.ipynb
+!notebooks/taxonomy_with_definitions.json
+!notebooks/taxonomy.json
+!notebooks/sirch_csv_1.txt
+!notebooks/sirch_json_6.txt
+
 models/*
 frontend/src/mock/*
 backend/logs/*

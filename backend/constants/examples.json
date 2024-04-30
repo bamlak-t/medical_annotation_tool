@@ -1,12 +1,8 @@
 {
   "examples": [
     {
-      "input": "A MEOWS score was calculated on several occasions with an incomplete set of observation parameters being recorded.",
-      "output": "```json\n{{\n\t\"text_extract\": \"A MEOWS score was calculated on several occasions with an incomplete set of observation parameters being recorded.\",\n\t\"factors\": [\"Assessment, investigation, testing, screening (e.g., holistic review)\"]\n}}\n```"
-    },
-    {
-      "input": "A combination of handwritten and electronic antenatal healthcare records were used and not all of the mother s risk factors were highlighted in her electronic healthcare records.",
-      "output": "```json\n{{\n\t\"text_extract\": \"A combination of handwritten and electronic antenatal healthcare records were used and not all of the mother s risk factors were highlighted in her electronic healthcare records.\",\n\t\"factors\": [\"Risk assessment\", \"Documentation\"]\n}}\n```"
+      "input": "Example input text extract",
+      "output": "```json\n{{\n\t\"text_extract\": \"Example input text extract.\",\n\t\"factors\": [\"Assessment, investigation, testing, screening (e.g., holistic review)\"]\n}}\n```"
     }
   ]
 }
