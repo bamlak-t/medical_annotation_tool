@@ -5,21 +5,22 @@ from peft import PeftModel
 from transformers import AutoModelForCausalLM, AutoTokenizer, GenerationConfig
 
 MODEL_NAME = 'mistralai/Mistral-7B-Instruct-v0.2'
-# 'C:/Users/bamla/Desktop/llm_proj/medical_annotation_tool/backend/autotrainer'
-ADAPTOR_PATH = 'C:/Users/bamla/Desktop/llm_proj/medical_annotation_tool/notebooks/medllm/checkpoint-379'
+ADAPTOR_PATH = 'auto_train/checkpoint-xxx' # path to the fine-tuned model
 
 
 class TorchAnnotationModel:
     """
-    TorchAnnotationModel class to annotate text extracts with factors from the taxonomy
+    TorchAnnotationModel class to annotate text extracts with factors from the taxonomy using a fine-tuned model
     """
 
-    def __init__(self, store, output_parser, few_shot_template, model_name=MODEL_NAME, adapter_path=ADAPTOR_PATH) -> None:
+    def __init__(self, store: object, output_parser: object, few_shot_template: object, 
+                 model_name: str = MODEL_NAME, adapter_path: str = ADAPTOR_PATH) -> None:
 
         self.store = store
         self.output_parser = output_parser
         self.few_shot_template = few_shot_template
 
+        # base pre-trained model without fine-tuning
         base_model = AutoModelForCausalLM.from_pretrained(
             MODEL_NAME,
             low_cpu_mem_usage=True,
@@ -29,6 +30,7 @@ class TorchAnnotationModel:
             device_map="auto",
         )
 
+        # fine-tuned model with adapter
         self.model = PeftModel.from_pretrained(
             base_model,
             adapter_path,
@@ -42,6 +44,7 @@ class TorchAnnotationModel:
         # set the model to evaluation mode to disable dropout and batch normalization layers
         self.model.eval()
 
+        # load the tokenizer for encoding and decoding the input text extracts
         self.tokenizer = AutoTokenizer.from_pretrained(
             adapter_path,
             trust_remote_code=True,
@@ -64,23 +67,24 @@ class TorchAnnotationModel:
         prompt = self.few_shot_template.format(
             text_extract=text_extract, taxonomy=self.store.get_taxonomy())
         
-        print('prompt', prompt)
-
+        # encoding the input using gpu
         input_ids = self.tokenizer.encode(
             prompt, return_tensors="pt").to('cuda')
+        
+        # generate the annotations using hyperparameters
         generation_output = self.model.generate(
             input_ids=input_ids,
             generation_config=GenerationConfig(
-                # these params you'll have to tweak
                 do_sample=True,
-                temperature=0.3,
+                temperature=0.0,
                 top_p=0.9,
                 num_beams=2,
             ),
             return_dict_in_generate=True,
-            output_scores=True,
-            max_new_tokens=150
+            output_scores=False,
         )
+
+        # decode the generated annotations
         output = self.tokenizer.decode(generation_output.sequences[0])[
             len(prompt):-4]
 

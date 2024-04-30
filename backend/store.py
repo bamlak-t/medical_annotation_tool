@@ -1,5 +1,5 @@
 import json
-import os
+import logging
 
 TAXONOMY_FILE = 'constants/taxonomy.json'
 PROMPT_FILE = 'constants/prompt.txt'
@@ -10,7 +10,10 @@ class Store:
     Store class to load and store the taxonomy, prompt, and examples
     """
 
-    def __init__(self, taxonomy_file=TAXONOMY_FILE, prompt_file=PROMPT_FILE, examples_file=EXAMPLES_FILE) -> None:
+    def __init__(self, 
+                 taxonomy_file=TAXONOMY_FILE, 
+                 prompt_file=PROMPT_FILE, 
+                 examples_file=EXAMPLES_FILE) -> None:
         self._taxonomy = self._load_file(taxonomy_file)
         self._parsed_taxonomy = self._load_file(taxonomy_file, json_key='taxonomy' , json_file=True)
         self._examples = self._load_file(examples_file, json_key='examples', json_file=True)
@@ -37,10 +40,10 @@ class Store:
                 else:
                     return f.read()
         except IOError:
-            print(f'Error opening or reading file: {file_name}, Current Directory: {os.getcwd()}')
+            logging.info(f'Error opening or reading file: {file_name}')
             return None
         except KeyError:
-            print(f"Missing key '{json_key}' in file: {file_name}, Current Directory: {os.getcwd()}")
+            logging.info(f"Missing key '{json_key}' in file: {file_name}")
             return None
 
     def get_prompt(self):

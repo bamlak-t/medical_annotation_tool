@@ -1,5 +1,9 @@
 from langchain.output_parsers import StructuredOutputParser, ResponseSchema
 from langchain.prompts import FewShotPromptTemplate, PromptTemplate
+from huggingface_hub import login
+import os
+
+login(token=os.getenv('HUGGINGFACE_TOKEN'))
 
 class Manager:
     """

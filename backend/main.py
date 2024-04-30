@@ -17,7 +17,7 @@ logging.basicConfig(filename='logs/annotation_app.log', filemode='w',
 app = Flask(__name__)
 CORS(app)
 
-AUTO_TRAINER_PATH = 'auto_trainer'
+AUTO_TRAIN_PATH = 'auto_train'
 
 # enum for model selection
 class ModelType(Enum):
@@ -30,26 +30,39 @@ class AnnotationApp:
     """
 
     def __init__(self):
+        # store manager to load the taxonomy, prompt, and examples
         store_manager = store.Store()
 
-        manager = inference.Manager()
+        # inference manager to manage the input and output of the model
+        manager = inference.Manager(store_manager)
         self.manager = manager
-        self.ollama_model = ollama_model.OllamaAnnotationModel(
-            store=store_manager, output_parser=manager.output_parser, few_shot_template=manager.few_shot_template)
 
-        self.torch_model = torch_model.TorchAnnotationModel(
-            store=store_manager, output_parser=manager.output_parser, few_shot_template=manager.few_shot_template)
-                
-        parsed_taxonomy = store.get_parsed_taxonomy()
+        # initialise pre-trained and fine-tuned models
+        model_params = {
+            'store': store_manager,
+            'output_parser': manager.output_parser,
+            'few_shot_template': manager.few_shot_template
+        }
+        self.ollama_model = ollama_model.OllamaAnnotationModel(**model_params)
+        self.torch_model = None # torch_model.TorchAnnotationModel(**model_params)
+
+        # database to store the annotations results
+        self.annotation_db = database.AnnotationDb()
+
+        parsed_taxonomy = store_manager.get_parsed_taxonomy()
 
         self.code_to_id_dictionary = {
             item['code']: item['code_id'] for item in parsed_taxonomy}
         self.id_to_code_dictionary = {
             item['code_id']: item['code'] for item in parsed_taxonomy}
 
-        self.annotation_db = database.AnnotationDb()
 
-    def annotate_text(self, text_extracts: List[str], text_extract_ids: List[int], save_response: bool, redo: bool, model_type: str) -> Dict[str, Any]:
+    def annotate_text(self, 
+                      text_extracts: List[str], 
+                      text_extract_ids: List[int], 
+                      save_response: bool, 
+                      redo: bool, 
+                      model_type: str) -> Dict[str, Any]:
         """
         Annotate text extracts with factors from the taxonomy
 
@@ -65,11 +78,12 @@ class AnnotationApp:
         """
         logging.info('Starting annotation of text extracts')
 
+        # list of parsed annotations
         annotations_list = []
         unique_factors = {}
 
         # select model based on model_type
-        model = self.ollama_model if model_type == ModelType.OLLAMA.value else self.torch_model
+        model = self.ollama_model if model_type == ModelType.OLLAMA else self.torch_model
 
         for index, text_extract in enumerate(text_extracts):
             # skip text extracts for selective annotation
@@ -105,7 +119,8 @@ class AnnotationApp:
             for item in annotations_list:
                 extract = item['text_extract']
                 coded_factors = item['factors']
-
+                
+                # aggregate the factors into a string
                 labels = ", ".join([self.get_code_by_id(factor_code)
                                     for factor_code in coded_factors])
 
@@ -114,7 +129,7 @@ class AnnotationApp:
             self.annotation_db.insert_bulk_row(to_save)
 
         if redo:
-            with open(AUTO_TRAINER_PATH + '/train.csv', 'a') as file:
+            with open(AUTO_TRAIN_PATH + '/train.csv', 'a') as file:
                 for item in annotations_list:
                     data_point = f'{self.manager.get_full_prompt()},{item["text_extract"]},,\n'
                     file.write(data_point)
@@ -144,10 +159,15 @@ def annotate_route():
     text_extract_ids = set(data.get('text_extract_ids', []))
     model_type = data.get('model_type', ModelType.OLLAMA.value)
 
+    logging.info(f'Annotating {len(text_extracts)} text extracts with model type {model_type}')
+
     annotation_app = AnnotationApp()
 
     result = annotation_app.annotate_text(
-        text_extracts, text_extract_ids, save_response=True, redo=len(text_extract_ids) > 0, model_type=ModelType(model_type))
+        text_extracts, text_extract_ids, 
+        save_response=True, 
+        redo=len(text_extract_ids) > 0, 
+        model_type=ModelType(model_type))
 
     return jsonify(result)
 

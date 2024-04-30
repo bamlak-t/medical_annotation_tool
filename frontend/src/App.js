@@ -56,6 +56,7 @@ function App() {
   const [selectedSentenceIds, setSelectedSentenceIds] = useState([]);
 
   const fetchAnnotationsData = async (sentences) => {
+    setIsLoading(true);
     const res = await fetch("http://localhost:5000/api/annotate", {
       method: "POST",
       headers: {
@@ -67,8 +68,11 @@ function App() {
         model_type: selectedModel,
       }),
     });
-    return await res.json(); //annotatedDataMock; //
+    setIsLoading(false);
+    return await res.json();
   };
+
+  //annotatedDataMock; //
 
   const parseAnnotations = (data) => {
     const newAnnotatedData = data.annotations || [];
@@ -102,10 +106,12 @@ function App() {
     });
 
     const newUniqueFactors = data.unique_factors || [];
-    const combined = [...uniqueFactors, ...newUniqueFactors];
-    const combinedIds = new Map(combined.map((item) => [item.code_id, item]));
-    const removed_duplicates = Array.from(combinedIds.values());
-    const updatedUniqueFactors = removed_duplicates.filter((obj) =>
+    const combinedAnnotations = [...uniqueFactors, ...newUniqueFactors];
+    const combinedIds = new Map(
+      combinedAnnotations.map((item) => [item.code_id, item])
+    );
+    const removedDuplicates = Array.from(combinedIds.values());
+    const updatedUniqueFactors = removedDuplicates.filter((obj) =>
       uniqueFactorIds.has(obj.code_id)
     );
 
@@ -117,32 +123,46 @@ function App() {
     setDocumentUpload(event.target.files[0]);
   };
 
+  const getSentences = (textContent) => {
+    const segments = textContent.items.map((item) => item.str);
+    // split text by . ! ? delimiters
+    const sentences = segments
+      .join("")
+      .split(/[.!?]/)
+      .filter((sentence) => sentence.trim() !== "")
+      .map((sentence) => sentence.trim());
+    setSentences(sentences);
+    return sentences;
+  };
+
   const handleUpload = async () => {
     setSelectedSentenceIds([]);
 
     if (documentUpload) {
+      // reset selected sentences
       console.log("Uploading file:", documentUpload.name);
 
       const fileReader = new FileReader();
-      fileReader.onload = async (e) => {
-        const content = e.target.result;
+
+      // onload listener for fileReader
+      fileReader.onload = async (event) => {
+        // get file content
+        const content = event.target.result;
         const pdf = await getDocument(content).promise;
-        const page = await pdf.getPage(1); // get first page
+        const page = await pdf.getPage(1); // TODO update so it works for multiple pages
         const textContent = await page.getTextContent();
-        const segments = textContent.items.map((item) => item.str);
-        const sentences = segments
-          .join("")
-          .split(/[.!?]/)
-          .filter((sentence) => sentence.trim() !== "")
-          .map((sentence) => sentence.trim());
-        setSentences(sentences);
 
-        setIsLoading(true);
+        // segment text content into sentences
+        const sentences = getSentences(textContent);
+
+        // set loading state and send request to backend
         const data = await fetchAnnotationsData(sentences);
-        setIsLoading(false);
 
+        // update state with response data
         parseAnnotations(data);
       };
+
+      // read file as ArrayBuffer
       fileReader.readAsArrayBuffer(documentUpload); // read as ArrayBuffer for pdf.js
     } else {
       alert("No file selected");
@@ -156,22 +176,29 @@ function App() {
           Medical Annotation Tool
         </h1>
       </div>
+      <div className="flex flex-row w-full gap-10 justify-center pb-3">
+        <div>
+          <h1 className="text-center text-1xl font-bold">Model Type</h1>
+          <select
+            className="border border-gray-300 rounded-md p-2 mt-2"
+            value={selectedModel}
+            onChange={(e) => setSelectedModel(e.target.value)}
+          >
+            <option value={OLLAMA_MODEL}>Base</option>
+            <option value={TORCH_MODEL}>Fine-tuned</option>
+          </select>
+        </div>
 
-      <div>
-        <h1 className="text-center text-1xl font-bold">Model Type</h1>
-        <select
-          className="border border-gray-300 rounded-md p-2"
-          value={selectedModel}
-          onChange={(e) => setSelectedModel(e.target.value)}
-        >
-          <option value={OLLAMA_MODEL}>Base</option>
-          <option value={TORCH_MODEL}>Fine-tuned</option>
-        </select>
+        <div>
+          <h1 className="text-center text-1xl font-bold">Selected Sentences</h1>
+          <p>Number of selected sentences: {selectedSentenceIds.length}</p>
+        </div>
       </div>
+
       <div className="flex flex-row w-full gap-10">
         <section className="justify-center items-center border border-gray-500 shadow-md p-5 min-w-80">
           <div className="flex flex-col gap-4">
-            <h1 className="text-center text-1xl font-bold">Controls</h1>
+            <h1 className="text-center text-1xl font-bold">Upload document</h1>
 
             <input type="file" onChange={handleDocumentChange} />
             <button
@@ -209,9 +236,6 @@ function App() {
                   ))
                 : "No factors"}
             </div>
-          </div>
-          <div className="flex flex-col gap-4 mt-5">
-            <h1 className="text-center text-1xl font-bold">Research</h1>
           </div>
         </section>
         <section className="items-center flex-grow border border-gray-500 shadow-md p-5">

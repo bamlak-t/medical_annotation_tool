@@ -12,7 +12,6 @@ class OllamaAnnotationModel:
 
     def __init__(self,  store, output_parser, few_shot_template, model_name=MODEL_NAME, embedding_model=EMBEDDING_MODEL) -> None:
         self.llm = Ollama(model=model_name)
-        # OllamaEmbeddings(model=embedding_model)
         self.embedding_model = embedding_model
         self.store = store
         self.output_parser = output_parser
@@ -48,7 +47,8 @@ class OllamaAnnotationModel:
             output = self.output_parser.parse(annotated)
             return output
         except Exception as e:
-            return {'text_extract': text_extract, 'factors': ['Error parsing annotations']}
+            return {'text_extract': text_extract, 
+                    'factors': ['Error parsing annotations']}
 
 
 if __name__ == '__main__':
