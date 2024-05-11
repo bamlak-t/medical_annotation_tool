@@ -21,7 +21,7 @@ The token can be obtained by:
 1. Signing up to HuggingFace [here](https://huggingface.co/join)
 2. Generating a new API token [here](https://huggingface.co/settings/tokens).
 
-#### Windows
+#### WSL (Windows Subsystem for Linux)
 
 At the time of writing, Ollama is not supported on Windows. As such, WSL for Windows is required to run the backend on Windows.
 
@@ -44,6 +44,19 @@ Create a `.env` file in the `backend` directory with the following content:
 
 ```bash
 HUGGINGFACE_TOKEN=YOUR_HUGGINGFACE_TOKEN
+```
+
+Install Ollama by running the command:
+
+```bash
+curl -fsSL https://ollama.com/install.sh | sh
+```
+
+Install Mistral 7B by running the command:
+
+```bash
+ollama install mistral-7b
+ollama list
 ```
 
 Then run the following command to start the backend:
